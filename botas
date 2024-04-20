@@ -1,0 +1,2 @@
+# for i, state in enumerate(traversed_states):
+#     print(f"State {i + 1}: {state.queens}")
