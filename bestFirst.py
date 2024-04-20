@@ -12,66 +12,78 @@ class State:
     # Index 3 (fourth row) has a queen at the first index (second column).
     # Since each index of the queenLocations array acts as a row, this automatically means that once this array is implemented on a board,
     # every row will at most have one queen.
-    
+
     def heuristicCalculation(self):
         captures = 0
         for i in range(len(self.queenLocations)):
             for j in range(i + 1, len(self.queenLocations)):
 
+                                                                            
+                if self.queenLocations[i] == self.queenLocations[j]:    # This portion raises a capture warning as soon as there are two queens
+                                                                        # in the same column.
+                    captures += 1
 
-                if self.queenLocations[i] == self.queenLocations[j]: # This portion raises a capture warning as soon as there are two queens
-                    captures += 1                                    # in the same column.
-
-
-                elif abs(self.queenLocations[i] - self.queenLocations[j]) == abs(i - j): # This portion checks for
-                    captures += 1                                                        # any capture violations diagonally.
+                elif abs(self.queenLocations[i] - self.queenLocations[j]) == abs(i - j):    # This portion checks for
+                                                                                            # any capture violations diagonally.
+                    captures += 1
         return captures
-    
+
     def __lt__(self, other):
-        return self.heuristicCalculation() < other.heuristicCalculation() # This is a function defined for the less than property of
-                                                                          # a state instance. A comparison is carried out
-                                                                          # in terms of what their heuristics result in using the
-                                                                          # heuristicCalculation function.
+        return self.heuristicCalculation() < other.heuristicCalculation()   # This is a function overrde defined for the less than property of
+                                                                            # a state instance. A comparison is carried out
+                                                                            # in terms of what their heuristics result in using the
+                                                                            # heuristicCalculation function.
+
+def showBoard(queenLocations):
+    board = []
+    for i in range(4):
+        row = []
+        for j in range(4):
+            row.append('_')
+        board.append(row)
+
+    for i in range(len(queenLocations)):
+        board[i][queenLocations[i]] = 'Q'
+    for row in board:
+        print(row)
+
 
 def GBFS():
     initialState = State()
-    # print_board(initialState)
-    open_list = [initialState]
-    # print_board(open_list)
-    visitedStates = set()
+    # showBoard(initialState)
+    container = [initialState]
+    # showBoard(container)
     stateCounter = 0
+    visitedStates = []
 
-    while open_list:
-        current_state = open_list.pop(0)
-        print_board(current_state.queenLocations)
+    while container:
+        currentState = container.pop(0) # Get the first state in the list.
+        showBoard(currentState.queenLocations)
         print()
         print("   |")
         print("   |")
         print("  \|/")
         print()
-        stateCounter = stateCounter + 1
-        visitedStates.add(tuple(current_state.queenLocations))  # Store the state as a tuple for efficient lookup
-        if len(current_state.queenLocations) == 4:
-            return current_state.queenLocations, stateCounter
+        stateCounter = stateCounter + 1 # Maintain a counter for the number of states encountered.
+        visitedStates.append(list(currentState.queenLocations))
+        if len(currentState.queenLocations) == 4:                   # This portion is the stopping condition for the execution
+            return currentState.queenLocations, stateCounter        # when all 4 queens have been placed on the board satisfying the
+                                                                    # capture conditions.
 
         for i in range(4):
-            if i not in current_state.queenLocations:
-                new_queenLocations = current_state.queenLocations + [i]
-                if tuple(new_queenLocations) not in visitedStates:  # Check if the state has been visited before
-                    open_list.append(State(new_queenLocations))
-                    visitedStates.add(tuple(new_queenLocations))
+            if i not in currentState.queenLocations:
+                addedLocations = currentState.queenLocations + [i]  # This portion cycles through all possible numbers in queenLocations array
+                if list(addedLocations) not in visitedStates:       # and adds them to the array as elements. These are then verified for presence
+                    container.append(State(addedLocations))         # in the visited states list for prevention of revisitation, successfully generating
+                    visitedStates.append(list(addedLocations))      # and cycling through new states.
 
-        open_list.sort()
+        container.sort() # This is where the function override for the less than property is used.
+                         # When all the states in the list are being sorted their heuristics are calculated
+                         # using the heuristicCalculation function in the less than override and compared.
 
-def print_board(queenLocations):
-    board = [['_' for _ in range(4)] for _ in range(4)]
-    for i in range(len(queenLocations)):
-        board[i][queenLocations[i]] = 'Q'
-    for row in board:
-        print(' '.join(row))
 
 queenLocations, counter = GBFS()
-print("Final board:")
-print_board(queenLocations)
+print("Solution reached:")
+showBoard(queenLocations)
 print()
-print(f"Total number of states traversed: {counter}")
+print(f"Number of states traversed is: {counter}")
